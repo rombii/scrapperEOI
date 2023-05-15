@@ -39,9 +39,9 @@ def find_links():
         sleep(3)
         try:
             suggestion = driver.find_element(By.CSS_SELECTOR, 'div.tt-suggestion>a:first-child')
-            links.append(suggestion.get_attribute('href'))
+            links.append(suggestion.get_attribute('href') + ' - ' + fish + '\n')
         except:
-            links.append(None)
+            links.append('\n')
         input.send_keys(Keys.CONTROL + "a")
         input.send_keys(Keys.DELETE)
 
@@ -55,16 +55,38 @@ def get_attr():
     f_links = open("links.txt", 'r')
     f_attr = open("value_links.txt", 'r')
     driver = webdriver.Chrome()
+    final_list = []
     for line in f_links:
+        line_split = split(' - ', line.replace('\n', ''))
+        fish_attributes = [line_split[1].replace(' ', '_')]
         for attr in f_attr:
-            temp = split(' - ', attr)
-            driver.get(line + temp[0])
-            # TODO
-            # read attributes and write them to some array to later create queries for database
-
-
+            try:
+                temp = split(' - ', attr.replace('\n', ''))
+                driver.get(line + temp[0])
+                value = driver.find_element(By.CLASS_NAME, 'trait-val').text
+                if value != '?':
+                    fish_attributes.append([temp[1].replace(' ', '_'), value])
+            except:
+                continue
+        f_attr.seek(0)
+        final_list.append(fish_attributes)
     driver.quit()
+    return final_list
 
-attrPerFish = []
-get_attr()
+
+def attr_to_n4j(list_of_attr):
+    f = open('queries.txt', 'w')
+    for fish in list_of_attr:
+        query = "CREATE (n:Fish {name:'" + fish[0]
+        if len(fish) > 1:
+            for i in range(1, len(fish)):
+                query += "', " + fish[i][0] + ":'" + fish[i][1]
+
+        query += "'});\n"
+        f.write(query)
+
+# find_links()
+fish_attr = get_attr()
+
+attr_to_n4j(fish_attr)
 
