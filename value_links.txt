@@ -1,0 +1,4 @@
+/data?predicate_id=255 - body length
+/data?predicate_id=260 - body mass
+/data?predicate_id=1329 - life span
+/data?predicate_id=2712 - water depth
